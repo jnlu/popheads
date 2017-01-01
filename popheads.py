@@ -21,12 +21,12 @@ def parsevotes(datafile):
 	gaveEleven = False
 	bonus = False
 	username = ""
-	albumCount = 0
-	numParticipants = 0
 	albumAllScores = []
 
 	for line in datafile:
 		category = line.split(":", 1)
+		if category and all(elem == '\n' for elem in category):
+			continue
 		for word in category:
 			word = word.strip('\n')
 		categoryFirst = category[0].strip('\n').strip(' ')
@@ -39,12 +39,10 @@ def parsevotes(datafile):
 				print("Error: The username '%s' appeared twice. Exiting program."% (username))
 				return 1
 			usernames.append(username)
-			numParticipants = numParticipants + 1
 		elif categoryFirst == "Album":
 			if len(albumAllScores) != 0:
-				albumUserAverages[album][username] = (sum(albumAllScores) / albumCount)
+				albumUserAverages[album][username] = (sum(albumAllScores) / max(1, len(albumAllScores)))
 			albumAllScores[:] = []
-			albumCount = 0
 			album = category[1].split(" ", 1)[1].strip('\n')
 			if album not in albumOverallAverages:
 				albumOverallAverages[album] = []
@@ -52,9 +50,8 @@ def parsevotes(datafile):
 				albumUserAverages[album] = {}
 		elif categoryFirst == "END":
 			if len(albumAllScores) != 0:
-				albumUserAverages[album][username] = (sum(albumAllScores) / albumCount)
+				albumUserAverages[album][username] = (sum(albumAllScores) / max(1, len(albumAllScores)))
 			albumAllScores[:] = []
-			albumCount = 0
 			bonus = False
 			gaveZero = False
 			gaveEleven = False
@@ -97,8 +94,6 @@ def parsevotes(datafile):
 					songComment = songScoreComment[2]
 					if (songComment != "\n"):
 						songComments.get(songName).append("**%s**: %s"% (username, songComment))
-
-				albumCount = albumCount + 1
 				albumAllScores.append(songScore)
 
 				songAllScores[songName].append(songScore)
@@ -182,7 +177,10 @@ def findHighestLowestScores(scores, outputfile):
 			lowest[song[1]].append(song[0])
 	outputfile.write("Highest scores: ")
 	for key in reversed(sorted(highest)):
-		outputfile.write("(%.1f x%d) "% (key, len(highest[key])))
+		if int(key) == float(key):
+			outputfile.write("(%d x%d) "% (key, len(highest[key])))
+		else:
+			outputfile.write("(%.1f x%d) "% (key, len(highest[key])))
 		lastusername = highest[key][-1]
 		for username in highest[key]:
 			outputfile.write("%s"% (username))
@@ -193,7 +191,10 @@ def findHighestLowestScores(scores, outputfile):
 	outputfile.write("\n")
 	outputfile.write("Lowest scores: ")
 	for key in sorted(lowest):
-		outputfile.write("(%.1f x%d) "% (key, len(lowest[key])))
+		if int(key) == float(key):
+			outputfile.write("(%d x%d) "% (key, len(lowest[key])))
+		else:
+			outputfile.write("(%.1f x%d) "% (key, len(lowest[key])))
 		lastusername = lowest[key][-1]
 		for username in lowest[key]:
 			outputfile.write("%s"% (username))
@@ -220,7 +221,10 @@ def printResults(outputfile):
 		scoreDict = bonusAllScoresWithNames.get(song[0])
 		sorted_score_dict = reversed(sorted(scoreDict.items(), key=operator.itemgetter(1)))
 		for score in sorted_score_dict:
-			outputfile.write("%s %.1f\n"% (score[0], score[1]))
+			if int(score[1]) == float(score[1]):
+				outputfile.write("%s %d\n"% (score[0], score[1]))
+			else:	
+				outputfile.write("%s %.1f\n"% (score[0], score[1]))
 		outputfile.write("\n")
 
 	for song in reversed(sorted_scores):
@@ -233,7 +237,10 @@ def printResults(outputfile):
 		scoreDict = songAllScoresWithNames.get(song[0])
 		sorted_score_dict = reversed(sorted(scoreDict.items(), key=operator.itemgetter(1)))
 		for score in sorted_score_dict:
-			outputfile.write("%s %.1f\n"% (score[0], score[1]))
+			if int(score[1]) == float(score[1]):
+				outputfile.write("%s %d\n"% (score[0], score[1]))
+			else:	
+				outputfile.write("%s %.1f\n"% (score[0], score[1]))
 		outputfile.write("\n")
 
 	outputfile.write("Overall album averages:\n")
@@ -260,13 +267,19 @@ def printResults(outputfile):
 
 	outputfile.write("Bonus rank:\n")
 	for song in reversed(bonus_sorted_scores):
-		outputfile.write("#%d: %s, %.2f\n"% (totalBonusSongs, song[0], float(song[1])))
+		if int(song[1]) == float(song[1]):
+			outputfile.write("#%d: %s, %d\n"% (totalBonusSongs, song[0], int(song[1])))
+		else:	
+			outputfile.write("#%d: %s, %.2f\n"% (totalBonusSongs, song[0], float(song[1])))
 		totalBonusSongs = totalBonusSongs + 1
 	outputfile.write("\n")
 
 	outputfile.write("Rank:\n")
 	for song in reversed(sorted_scores):
-		outputfile.write("#%d: %s, %.2f\n"% (totalSongs, song[0], float(song[1])))
+		if int(song[1]) == float(song[1]):
+			outputfile.write("#%d: %s, %d\n"% (totalSongs, song[0], int(song[1])))
+		else:	
+			outputfile.write("#%d: %s, %.2f\n"% (totalSongs, song[0], float(song[1])))		
 		totalSongs = totalSongs + 1
 
 
