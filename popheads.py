@@ -98,13 +98,13 @@ def parsevotes(datafile):
 						print("Error: User '%s' gave an invalid score to track '%s'. Exiting program."% (username, songName))
 						return 1
 					if (songScore == 0):
-						if (gaveZero == True):
+						if gaveZero:
 							print("Error: User '%s' gave two zeros. Triggered for song '%s'. Exiting program."% (username, songName))
 							return 1
 						else:
 							gaveZero = True
 					if (songScore == 11):
-						if (gaveEleven == True):
+						if gaveEleven:
 							print("Error: User '%s' gave two elevens. Triggered for song '%s'. Exiting program."% (username, songName))
 							return 1
 						else:
