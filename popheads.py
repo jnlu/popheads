@@ -18,10 +18,14 @@ albumOverallAverages = {} #This dictionary's keys are album titles, and the valu
 albumUserAverages = {} #This dictionary's keys are the album titles, and the values are another dictionary that contain a username and an average
 albumAllComments = {} #This dictionary's keys are the album titles, and the values are a list that contain a username and comment
 
+hostSongComments = {} #This dictionary's keys are song titles, and the values are the host's comment on a song.
+hostAlbumComments = {} #This dictionary's keys are album titles, and the values are the host's comment on a song.
+
 def parsevotes(datafile):
 	gaveZero = False
 	gaveEleven = False
 	bonus = False
+	host = False
 	username = ""
 	albumAllScores = []
 
@@ -40,6 +44,8 @@ def parsevotes(datafile):
 					print("Error: The username '%s' appeared twice. Exiting program."% (username))
 					return 1
 				usernames.append(username)
+			elif line.startswith("HOST"):
+				host = True
 			elif line.startswith("Album"):
 				bonus = False
 				if len(albumAllScores) != 0:
@@ -47,11 +53,13 @@ def parsevotes(datafile):
 				albumAllScores[:] = []
 				albumAndComment = re.findall(regexAlbum, line)[0]
 				album = albumAndComment[0].strip('\n').strip()
+				if host:
+					hostAlbumComments[album] = albumAndComment[1].strip('\n').strip()
 				if len(albumAndComment) > 1:
 					if album not in albumAllComments:
 						albumAllComments[album] = []
 					albumComment = albumAndComment[1].strip('\n').strip()
-					if albumComment:
+					if albumComment and not host:
 						albumAllComments[album].append("**%s**: %s" % (username, albumComment)) 
 				if album not in albumOverallAverages:
 					albumOverallAverages[album] = []
@@ -65,6 +73,7 @@ def parsevotes(datafile):
 				bonus = False
 				gaveZero = False
 				gaveEleven = False
+				host = False
 				username = ""
 			elif line.startswith("BONUS TRACKS"):
 				bonus = True
@@ -83,13 +92,21 @@ def parsevotes(datafile):
 					if songName not in songAllScoresWithNames:
 						songAllScoresWithNames[songName] = {}
 
+					if not host:
+						if songName not in hostSongComments.keys():
+							print("User %s gave a score for a song not included. Triggered for song '%s'. Exiting program."% (username, songName))
+							return 1
+					if host:
+							hostSongComments[songName] = songScoreComment[2].strip('\n').strip()
+
 					if len(songScoreComment) > 1:
 						if songScoreComment[1]:
 							songScore = float(songScoreComment[1].strip('\n').strip())
 					if len(songScoreComment) == 3:
 						if songScoreComment[2]:
 							songComment = songScoreComment[2].strip('\n').strip()
-							songComments[songName].append("**%s**: \"%s\"\n"% (username, songComment))
+							if not host:
+								songComments[songName].append("**%s**: \"%s\"\n"% (username, songComment))
 
 					if (songScore == 200):
 						print("Error: User '%s' did not give a score to track '%s'. Exiting program."% (username, songName))
@@ -128,6 +145,13 @@ def parsevotes(datafile):
 					if songName not in bonusAllScoresWithNames:
 						bonusAllScoresWithNames[songName] = {}
 
+					if not host:
+						if songName not in hostSongComments.keys():
+							print("User %s gave a score for a song not included. Triggered for song '%s'. Exiting program"% (username, songName))
+							return 1
+					if host:
+							hostSongComments[songName] = songScoreComment[2].strip('\n').strip()
+
 					if songScore != 200:
 						if (songScore == 0):
 							print("Error: User '%s' gave a zero to the bonus track '%s'. Exiting program."% (username, songName))
@@ -142,7 +166,10 @@ def parsevotes(datafile):
 						if len(songScoreComment) == 3:
 							if songScoreComment[2]:
 								songComment = songScoreComment[2].strip('\n').strip()
-								bonusComments[songName].append("**%s**: \"%s\"\n"% (username, songComment))
+								if host:
+									hostSongComments[songName] = songComment
+								else:
+									bonusComments[songName].append("**%s**: \"%s\"\n"% (username, songComment))
 						
 						bonusAllScores[songName].append(songScore)
 						bonusAllScoresWithNames[songName][username] = songScore
@@ -231,6 +258,8 @@ def printResults(outputfile):
 			outputfile.write("# #%d: %s\n---\n**Average:** %.3f **// Total Points:** %.1f **// Controversy:** %.3f **// [Listen here]()**\n\n---\n"% (totalBonusSongs, song[0], float(song[1]), songTotal, findControversy(bonusAllScores[song[0]])))
 			totalBonusSongs = totalBonusSongs + 1
 			findHighestLowestScores(bonusAllScoresWithNames[song[0]], outputfile, float(song[1]))
+			if hostSongComments[song[0]]:
+				outputfile.write("%s\n\n---\n"% (hostSongComments[song[0]]))
 			for comment in bonusComments.get(song[0]):
 				outputfile.write("%s\n"% (comment))
 			outputfile.write("All scores:\n")
@@ -252,8 +281,10 @@ def printResults(outputfile):
 		averages.append(float(song[1]))
 		songTotal = sum(songAllScores[song[0]])
 		outputfile.write("# #%d: %s\n---\n**Average:** %.3f **// Total Points:** %.1f **// Controversy:** %.3f **// [Listen here]()**\n\n---\n"% (totalSongs, song[0], float(song[1]), songTotal, cont))
-		totalSongs = totalSongs + 1
+		totalSongs += 1
 		findHighestLowestScores(songAllScoresWithNames[song[0]], outputfile, float(song[1]))
+		if hostSongComments[song[0]]:
+			outputfile.write("%s\n\n---\n"% (hostSongComments[song[0]]))
 		for comment in songComments.get(song[0]):
 			outputfile.write("%s\n"% (comment))
 		outputfile.write("All scores:\n")
@@ -270,17 +301,19 @@ def printResults(outputfile):
 
 	outputfile.write("Overall album information\n\n")
 	for album in albumOverallAverages:
+		outputfile.write("# " + album + "\n\n---\n\n")
 		average = sum(albumOverallAverages[album]) / len(albumOverallAverages[album])
-		outputfile.write("Overall average for %s: %.3f\n\n"% (album, average))
-		outputfile.write("%s User comments: \n\n"% (album))
+		outputfile.write("**Overall average**: %.3f **// Total points:** %.3f \n\n---\n\n"% (average, float(average * len(usernames))))
+		if hostAlbumComments[album]:
+			outputfile.write(hostAlbumComments[album] + "\n\n---\n")
 		for entry in albumAllComments[album]:
 			outputfile.write("%s \n\n"% (entry))
-		outputfile.write("\n\n")
-		outputfile.write("User averages for %s:\n\n"% (album))
+		outputfile.write("---\n\n")
+		outputfile.write("User Averages:\n\n")
 		sorted_album_scores = reversed(sorted(albumUserAverages[album].items(), key=operator.itemgetter(1)))
 		for key in sorted_album_scores:
 			outputfile.write("%s: %.3f\n"% (key[0], key[1]))
-		outputfile.write("\n")
+		outputfile.write("\n\n---\n\n")
 
 	outputfile.write("List of participants:\n")
 	for username in usernames:
@@ -301,7 +334,7 @@ def printResults(outputfile):
 				outputfile.write("#%d: %s, %d, %.1f\n"% (totalBonusSongs, song[0], int(song[1]), sum(bonusAllScores[song[0]])))
 			else:	
 				outputfile.write("#%d: %s, %.4f, %.1f\n"% (totalBonusSongs, song[0], float(song[1]), sum(bonusAllScores[song[0]])))
-			totalBonusSongs = totalBonusSongs + 1
+			totalBonusSongs += 1
 		outputfile.write("\n")
 
 	outputfile.write("Rank:\n")
@@ -310,7 +343,7 @@ def printResults(outputfile):
 			outputfile.write("\n\#%d: %s, %d, %.1f\n"% (totalSongs, song[0], int(song[1]), sum(songAllScores[song[0]])))
 		else:	
 			outputfile.write("\n\#%d: %s, %.4f, %.1f\n"% (totalSongs, song[0], float(song[1]), sum(songAllScores[song[0]])))		
-		totalSongs = totalSongs + 1
+		totalSongs += 1
 
 def fix(inputfile, outputfile):
 	for line in inputfile:
