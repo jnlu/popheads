@@ -18,8 +18,6 @@ albumOverallAverages = {} #This dictionary's keys are album titles, and the valu
 albumUserAverages = {} #This dictionary's keys are the album titles, and the values are another dictionary that contain a username and an average
 albumAllComments = {} #This dictionary's keys are the album titles, and the values are a list that contain a username and comment
 
-areBonus = False
-
 def parsevotes(datafile):
 	gaveZero = False
 	gaveEleven = False
@@ -30,7 +28,6 @@ def parsevotes(datafile):
 	regexSong = r"(.+?):\s*([\d\.]+)?\s*(.+)?"
 	regexAlbum = r"Album:\s*([^:]+):?\s*(.+)?"
 	regexUsername = r"Username:\s*(.+)"
-
 	for line in datafile:
 		if not line.isspace():
 			line = line.strip('\n').strip()
@@ -44,6 +41,7 @@ def parsevotes(datafile):
 					return 1
 				usernames.append(username)
 			elif line.startswith("Album"):
+				bonus = False
 				if len(albumAllScores) != 0:
 					albumUserAverages[album][username] = (sum(albumAllScores) / max(1, len(albumAllScores)))
 				albumAllScores[:] = []
@@ -70,18 +68,29 @@ def parsevotes(datafile):
 				username = ""
 			elif line.startswith("BONUS TRACKS"):
 				bonus = True
-				areBonus = True
 			else:
 				songScore = 200
 				songScoreComment = re.findall(regexSong, line)[0]
 				songName = songScoreComment[0].strip('\n').strip()
-				if len(songScoreComment) > 1:
-					if songScoreComment[1]:
-						songScore = float(songScoreComment[1].strip('\n').strip())
-				if len(songScoreComment) == 3:
-					if songScoreComment[2]:
-						scoreComment = songScoreComment[2].strip('\n').strip()
-				if bonus == False:
+
+				if not bonus:
+					if songName not in songComments:
+						songComments[songName] = []
+					if songName not in songAvgScores:
+						songAvgScores[songName] = 0
+					if songName not in songAllScores:
+						songAllScores[songName] = []
+					if songName not in songAllScoresWithNames:
+						songAllScoresWithNames[songName] = {}
+
+					if len(songScoreComment) > 1:
+						if songScoreComment[1]:
+							songScore = float(songScoreComment[1].strip('\n').strip())
+					if len(songScoreComment) == 3:
+						if songScoreComment[2]:
+							songComment = songScoreComment[2].strip('\n').strip()
+							songComments[songName].append("**%s**: \"%s\"\n"% (username, songComment))
+
 					if (songScore == 200):
 						print("Error: User '%s' did not give a score to track '%s'. Exiting program."% (username, songName))
 						return 1
@@ -102,26 +111,14 @@ def parsevotes(datafile):
 							gaveEleven = True
 
 					albumOverallAverages[album].append(songScore)
-
-					if songName not in songComments:
-						songComments[songName] = []
-					if songName not in songAvgScores:
-						songAvgScores[songName] = 0
-					if songName not in songAllScores:
-						songAllScores[songName] = []
-					if songName not in songAllScoresWithNames:
-						songAllScoresWithNames[songName] = {}
-
-					if len(songScoreComment) != 2:
-						songComment = songScoreComment[2].strip(' ').strip('\n').replace('\"','\'').strip(' ')
-						if (songComment != "\n" and songComment != " \n" and songComment != ""):
-							songComments.get(songName).append("**%s**: \"%s\"\n"% (username, songComment))
 					albumAllScores.append(songScore)
-
 					songAllScores[songName].append(songScore)
 					songAllScoresWithNames[songName][username] = songScore
 
 				else:
+					if len(songScoreComment) > 1:
+						if songScoreComment[1]:
+							songScore = float(songScoreComment[1].strip('\n').strip())
 					if songName not in bonusComments:
 						bonusComments[songName] = []
 					if songName not in bonusAvgScores:
@@ -130,6 +127,7 @@ def parsevotes(datafile):
 						bonusAllScores[songName] = []
 					if songName not in bonusAllScoresWithNames:
 						bonusAllScoresWithNames[songName] = {}
+
 					if songScore != 200:
 						if (songScore == 0):
 							print("Error: User '%s' gave a zero to the bonus track '%s'. Exiting program."% (username, songName))
@@ -140,9 +138,12 @@ def parsevotes(datafile):
 						if (songScore < 1 or songScore > 10):
 							print("Error: User '%s' gave an invalid score to track '%s'. Exiting program."% (username, songName))
 							return 1
+
 						if len(songScoreComment) == 3:
-							if (songComment != "\n" and songComment != " \n" and songComment != ""):
-								bonusComments.get(songName).append("**%s**: \"%s\"\n"% (username, songComment))
+							if songScoreComment[2]:
+								songComment = songScoreComment[2].strip('\n').strip()
+								bonusComments[songName].append("**%s**: \"%s\"\n"% (username, songComment))
+						
 						bonusAllScores[songName].append(songScore)
 						bonusAllScoresWithNames[songName][username] = songScore
 
@@ -224,7 +225,7 @@ def printResults(outputfile):
 	totalBonusSongs = 1
 	sorted_scores = sorted(songAvgScores.items(), key=operator.itemgetter(1))
 	bonus_sorted_scores = sorted(bonusAvgScores.items(), key=operator.itemgetter(1))
-	if areBonus:
+	if len(bonusAvgScores) > 0:
 		for song in reversed(bonus_sorted_scores):
 			songTotal = sum(bonusAllScores[song[0]])
 			outputfile.write("# #%d: %s\n---\n**Average:** %.3f **// Total Points:** %.1f **// Controversy:** %.3f **// [Listen here]()**\n\n---\n"% (totalBonusSongs, song[0], float(song[1]), songTotal, findControversy(bonusAllScores[song[0]])))
@@ -293,7 +294,7 @@ def printResults(outputfile):
 	totalBonusSongs = 1
 	totalSongs = 1
 
-	if areBonus:
+	if len(bonusAvgScores) > 0:
 		outputfile.write("Bonus rank:\n")
 		for song in reversed(bonus_sorted_scores):
 			if int(song[1]) == float(song[1]):
