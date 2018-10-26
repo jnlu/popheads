@@ -498,7 +498,7 @@ class RateMachine:
 							outputfile.write("**%s** (%s): %s\n\n"% (tup[0].replace("_", "\_"), float(tup[1]), tup[2]))
 					outputfile.write("---\n")
 				else:
-					outputfile.write("%s\n\n---\n"% (self.hostSongComments[songTitle][2]))
+					outputfile.write("%s\n\n---\n"% (self.hostSongComments[songTitle][0][2]))
 			sortedComments = sorted(self.songComments[songTitle], key=lambda tup:(-tup[1], (tup[0].lower())))
 			for comment in sortedComments:
 				if int(comment[1]) == float(comment[1]):
@@ -530,7 +530,7 @@ class RateMachine:
 							outputfile.write("**%s** (%s): %s\n\n"% (tup[0].replace("_", "\_"), self.albumUserAverages[album][tup[0]], tup[1]))
 						outputfile.write("---\n")
 					else:
-						outputfile.write(self.hostAlbumComments[album] + "\n\n---\n")
+						outputfile.write(self.hostAlbumComments[album][0][1] + "\n\n---\n")
 				sorted_album_comments = reversed(sorted(self.albumAllComments[album], key=lambda k: self.albumUserAverages[album][k[0]]))
 				for entry in sorted_album_comments:
 					username = entry[0]
