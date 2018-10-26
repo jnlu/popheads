@@ -566,11 +566,16 @@ class RateMachine:
 		totalBonusSongs = 1
 		totalSongs = 1
 
+
 		if len(self.bonusAvgScores) > 0:
 			outputfile.write("Bonus rank:\n")
 			for song in reversed(bonus_sorted_scores):
+				songTitle = song[0]
+				main_title = songTitle
+				if songTitle in self.songArtistMap:
+					main_title = self.songArtistMap[songTitle] + " - " + songTitle
 				if self.bonusAllScores[song[0]]:
-					outputfile.write("\n\#%d: %s — %s | %.4f | %.1f\n"% (totalBonusSongs, self.songArtistMap[song[0]], song[0], float(song[1]), sum(self.bonusAllScores[song[0]])))
+					outputfile.write("\n\#%d: %s — %s | %.4f | %.1f\n"% (totalBonusSongs, main_title, song[0], float(song[1]), sum(self.bonusAllScores[song[0]])))
 				else:		
 					outputfile.write("\n\#%d: %s | %.4f | %.1f\n"% (totalBonusSongs, song[0], float(song[1]), sum(self.bonusAllScores[song[0]])))				
 				totalBonusSongs += 1
