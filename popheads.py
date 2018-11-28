@@ -448,7 +448,7 @@ class RateMachine:
 								outputfile.write("**%s** (%s): %s\n\n"% (tup[0].replace("_", "\_"), float(tup[1]), tup[2]))
 						outputfile.write("---\n")
 					else:
-						outputfile.write("%s\n\n---\n"% (self.hostSongComments[songTitle][2]))
+						outputfile.write("%s\n\n---\n"% (self.hostSongComments[songTitle][0][2]))
 				sortedComments = sorted(self.bonusComments[songTitle], key=lambda tup:(-tup[1], (tup[0].lower())))
 				for comment in sortedComments:
 					if int(comment[1]) == float(comment[1]):
