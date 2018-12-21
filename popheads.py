@@ -610,7 +610,7 @@ class RateMachine:
 				print("User " + username + " not found. Exiting program.")
 				sys.exit()
 			print(username)
-
+		self.usernames = ["selegend"]
 		for username in self.usernames:
 			message = """Hello! This is an automated message for the Kpop Girl Groups Rate. The reveal begins at <INSERT TIME AND STUFF>, and you can follow along in the plug.dj room and in the thread on /r/popheads. There'll also be a holiday party in the plug.dj room before the reveal starts - feel free to join us!\n\n---\n\n"""
 
