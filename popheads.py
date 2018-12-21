@@ -6,6 +6,8 @@ import re
 import time
 import csv
 import sys
+import praw
+import rate_settings
 
 class RateMachine:
 
@@ -591,7 +593,38 @@ class RateMachine:
 			else:		
 				outputfile.write("\n\#%d: %s | %.4f | %.1f\n"% (rank, songTitle, float(songScore), sum(self.songAllScores[songTitle])))				
 			totalSongs += 1
-			
+
+	def notify(self):
+		SECRET = rate_settings.secret
+		ID = rate_settings.clientid
+		AGENT = rate_settings.agent
+		my_username = rate_settings.username
+		password = rate_settings.password
+
+		reddit = praw.Reddit(client_id=ID, client_secret=SECRET, user_agent=AGENT, username=my_username, password=password)
+
+		for username in self.usernames:
+			try:
+				reddit.redditor(username).link_karma
+			except:
+				print("User " + username + " not found. Exiting program.")
+				sys.exit()
+			print(username)
+
+		for username in self.usernames:
+			message = """Hello! This is an automated message for the Kpop Girl Groups Rate. The reveal begins at <INSERT TIME AND STUFF>, and you can follow along in the plug.dj room and in the thread on /r/popheads. There'll also be a holiday party in the plug.dj room before the reveal starts - feel free to join us!\n\n---\n\n"""
+
+			message = message + "\n\nBelow are your averages for each girl group.\n\n"
+			for album in self.albums:
+				message = message + album + ": " + str(self.albumUserAverages[album][username])[:5] + "\n\n"
+
+			reddit.redditor(username).message(subject="Rate Notification", message=message)
+			print(username)
+			time.sleep(.5)
+		
+
+		print("Users notified!")
+
 def main():
 	if __name__ == '__main__':
 		datafile = open(<data_file>, "r")
