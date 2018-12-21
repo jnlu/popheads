@@ -635,4 +635,6 @@ def main():
 		print("Printed results!")
 		datafile.close()
 		outputfile.close()
+		#rm.notify()
+
 main()
