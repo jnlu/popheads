@@ -361,7 +361,7 @@ document.getElementById('button').onclick = function() {
 
   function recordUsername(line) {
     user = regexUsername.exec(line)[1].trim().replace(/_/g, "\\_");
-    if (user in usernames) {
+    if (usernames.includes(user)) {
         document.getElementById('output').value = ("Error: User " + user + " appears twice. Exiting program.");
         throw new Error("?")
     }
