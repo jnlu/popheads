@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<link rel="stylesheet" type="text/css" href="popheads.css"/>
+<title>Rate Machine</title>
+<link rel="shortcut icon" type="image/jpg" href="images/favicon.ico"/>
+
+
+<head>
+  <script data-ad-client="ca-pub-3638403753354041" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+</head>
+<body>
+  <div id="textboxes">
+    <textarea name="data" id="data" rows="20" cols="80" spellcheck="false">Copy and paste input here</textarea>
+    <textarea name="output" id="output" rows="20" cols="80" spellcheck="false">Output appears here</textarea>
+  </div>
+  <div id="buttons">
+    <input id="button" type="submit" name="button" value="Convert"/> 
+    <div class="tooltip">
+      <button onclick="copyOutputText()" onmouseout="outFunc()">
+        <span class="tooltiptext" id="outputTooltip">Copy to clipboard</span>
+          Copy Output Text
+      </button>
+    </div>
+    <div id="samples">
+      <p><input id="button2" type="submit" name="button2" value="Sample 1"/>
+      <input id="button5" type="submit" name="button5" value="Sample 2"/>
+      <input id="button6" type="submit" name="button5" value="Sample 3"/>
+      <input id="button7" type="submit" name="button5" value="Sample 4"/>
+      <input id="button8" type="submit" name="button5" value="Sample 5"/></p>
+    </div>
+  </div>
+
+    <div id="textboxes2">
+      <textarea name="username" id="username" rows="10" cols="20" spellcheck="false">Type your username here</textarea>
+      <textarea name="subject" id="subject" rows="10" cols="30" spellcheck="false">Type the subject of the message here</textarea>
+      <textarea name="msginput" id="msginput" rows="10" cols="50" spellcheck="false">Type your message body here</textarea>
+      <textarea name="msgoutput" id="msgoutput" rows="10" cols="50" spellcheck="false">Message URL appears here</textarea>
+    </div>
+  <div id="messageboxes">  
+    <input id="button3" type="submit" name="button3" value="Create Message URL"> 
+    <div class="tooltip">
+      <button onclick="copyMessageText()" onmouseout="outFunc2()">
+        <span class="tooltiptext" id="msgTooltip">Copy to clipboard</span>
+          Copy Message Link
+      </button>
+    </div>
+  </div>
+  <p> <input id="button4" type="submit" name="button4" value="Load Sample">
+  </p>
+
+  <div id = "explanation">
+    <h3>Useful rate machine toggles</h3>
+    <ul>
+      <li>HOST | Add this line under the "Username" line for a host's set of scores. The first set of scores must be from a host. You can designate multiple people as a host. See any Sample for guidance.</li>
+      <li>NO ALBUM | Add this line under the first "HOST" line if your rate is a collection of songs with no connection (i.e. not a series of albums or not from a small group of artists). See Sample 4.</li>
+      <li>CATEGORY: | Add this line to designate that this rate is categorized into something other than albums. For example, type "CATEGORY:Artist" to designate this rate as a collection of artists. Whatever you type after the colon replaces the "Album:" line; e.g. it becomes "Artist:" instead. See Sample 5.</li>
+      <li>ARTIST: | Add this line after a category line to link every song in that category to that artist. The artist name gets printed alongside the song name in the  results section. See Samples 2 and 5.</li>
+      <li>PRINTALLSCORES | Add this line under a "HOST" line to print every individual score in the detailed results section instead of just the highest and lowest scores. This feature is recommended unless you have an extremely high number of participants.</li>
+    </ul>
+    <p>See the rate server for information on other toggles.</p>
+  </div>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="popheads.js"></script>
+  <iframe src="https://open.spotify.com/embed/album/0DBoWQ52XUHtrZQdfAqOVj" width="100%" height="380" frameBorder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+</body>
+</meta>
+</html>
